@@ -198,7 +198,7 @@ app.get('/stream', async (req, res) => {
 
     try {
       const { stdout: fallbackUrl } = await execFilePromise(YTDLP, [
-        '-f', 'bestaudio',
+        '-f', 'best',
         '-g',
         '--no-warnings',
         url
