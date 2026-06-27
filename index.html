@@ -343,6 +343,32 @@
       gap: 10px;
     }
 
+    .results-back {
+      background: none;
+      border: none;
+      color: var(--text);
+      cursor: pointer;
+      padding: 6px;
+      margin-left: -6px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    .results-back:hover {
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    body.dark .results-back {
+      color: var(--text-dark);
+    }
+
+    body.dark .results-back:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
     .results-count {
       font-size: .8rem;
       font-weight: 600;
@@ -658,10 +684,12 @@
       z-index: 300;
       background: var(--bg);
       transform: translateY(100%);
-      transition: transform .35s var(--ease);
+      transition: transform .35s var(--ease), visibility .35s var(--ease);
       overflow-y: auto;
       overflow-x: hidden;
       overscroll-behavior: contain;
+      visibility: hidden;
+      pointer-events: none;
     }
 
     body.dark .about-page {
@@ -670,6 +698,8 @@
 
     .about-page.show {
       transform: translateY(0);
+      visibility: visible;
+      pointer-events: auto;
     }
 
     .about-header {
@@ -1485,14 +1515,18 @@
       z-index: 200;
       background: #0a0a0a;
       transform: translateY(100%);
-      transition: transform .4s var(--ease);
+      transition: transform .4s var(--ease), visibility .4s var(--ease);
       overflow-y: auto;
       overflow-x: hidden;
       overscroll-behavior: contain;
+      visibility: hidden;
+      pointer-events: none;
     }
 
     .fullscreen-player.show {
       transform: translateY(0);
+      visibility: visible;
+      pointer-events: auto;
     }
 
     .fs-bg {
@@ -2239,7 +2273,13 @@
     <div class="results-section" id="resultsSection">
       <div class="results-header">
         <div class="results-title">
-          Search Results
+          <button class="results-back" id="resultsBack" aria-label="Go back to Home">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="19" y1="12" x2="5" y2="12"></line>
+              <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+          </button>
+          <span>Search Results</span>
           <span class="results-count" id="resultsCount">0</span>
         </div>
         <button class="results-close" id="resultsClose">
@@ -3077,6 +3117,10 @@
     }
 
     $('resultsClose').onclick = () => {
+      goToHome();
+    };
+
+    $('resultsBack').onclick = () => {
       goToHome();
     };
 
