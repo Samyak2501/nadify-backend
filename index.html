@@ -2854,12 +2854,14 @@
         }
       }
       
-      // Insert the new loop keyframe rule: pause at 0-12%, scroll left to -distance at 100%
+      // Insert the new loop keyframe rule: pause at 10px (0-12%), scroll left to -(distance - 10)px at 100%
+      const startPos = 10;
+      const endPos = distance - startPos;
       const ruleText = `
         @keyframes ${name} {
-          0% { transform: translate3d(0, 0, 0); }
-          12% { transform: translate3d(0, 0, 0); }
-          100% { transform: translate3d(-${distance}px, 0, 0); }
+          0% { transform: translate3d(${startPos}px, 0, 0); }
+          12% { transform: translate3d(${startPos}px, 0, 0); }
+          100% { transform: translate3d(-${endPos}px, 0, 0); }
         }
       `;
       marqueeStyleSheet.insertRule(ruleText, marqueeStyleSheet.cssRules.length);
