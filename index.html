@@ -546,15 +546,13 @@
     .np-title.marquee-parent,
     .fs-title.marquee-parent {
       text-overflow: clip !important;
+      mask-image: linear-gradient(to right, transparent 0%, #000 8px, #000 calc(100% - 8px), transparent 100%);
+      -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 8px, #000 calc(100% - 8px), transparent 100%);
     }
 
     .song-inner {
       display: inline-block;
       white-space: nowrap;
-    }
-
-    .song-inner.marquee-active {
-      animation: marquee var(--scroll-duration, 5s) linear infinite;
     }
 
     .artist {
@@ -2856,32 +2854,35 @@
         }
       }
       
-      // Insert the new keyframe rule (0-10% start pause, 45-55% end pause, 90-100% start pause)
+      // Insert the new loop keyframe rule: pause at 0-12%, scroll left to -distance at 100%
       const ruleText = `
         @keyframes ${name} {
           0% { transform: translate3d(0, 0, 0); }
-          10% { transform: translate3d(0, 0, 0); }
-          45% { transform: translate3d(-${distance}px, 0, 0); }
-          55% { transform: translate3d(-${distance}px, 0, 0); }
-          90% { transform: translate3d(0, 0, 0); }
-          100% { transform: translate3d(0, 0, 0); }
+          12% { transform: translate3d(0, 0, 0); }
+          100% { transform: translate3d(-${distance}px, 0, 0); }
         }
       `;
       marqueeStyleSheet.insertRule(ruleText, marqueeStyleSheet.cssRules.length);
     }
 
     function updateMarquees() {
-      const isMobile = window.innerWidth <= 1024;
       const elements = document.querySelectorAll('.song-inner');
       
       elements.forEach(inner => {
         const parent = inner.parentElement;
         if (!parent) return;
 
+        // Retrieve original text if not already saved
+        let originalText = inner.getAttribute('data-original-text');
+        if (!originalText) {
+          originalText = inner.textContent;
+          inner.setAttribute('data-original-text', originalText);
+        }
+
+        // Reset text and styles to measure cleanly
+        inner.innerHTML = originalText;
         parent.classList.remove('marquee-parent');
         inner.style.animation = '';
-
-        if (!isMobile) return;
 
         // Skip hidden elements to avoid false scrollWidth calculations
         if (parent.getBoundingClientRect().width === 0) return;
@@ -2890,9 +2891,14 @@
         const parentWidth = parent.clientWidth;
 
         if (innerWidth > parentWidth) {
-          const scrollDistance = innerWidth - parentWidth;
-          const buffer = 16; // Add a tiny safety padding for the right-hand scroll limits
-          const totalDistance = scrollDistance + buffer;
+          const gap = 48; // Space between original text and duplicate copy
+          
+          // Re-populate with duplicate copy
+          inner.innerHTML = `<span class="text-main" style="padding-right: ${gap}px; display: inline-block;">${originalText}</span><span class="text-dup" style="display: inline-block;">${originalText}</span>`;
+          
+          // Get the exact offset width of the main copy including its spacer padding
+          const mainCopy = inner.querySelector('.text-main');
+          const singleWidth = mainCopy.offsetWidth;
           
           let animName = inner.getAttribute('data-marquee-anim');
           if (!animName) {
@@ -2901,10 +2907,10 @@
             inner.setAttribute('data-marquee-anim', animName);
           }
           
-          addDynamicMarqueeRule(animName, totalDistance);
+          addDynamicMarqueeRule(animName, singleWidth);
           
-          // Speed: ~30 pixels per second. Minimum duration of 4.5 seconds for readability
-          const duration = Math.max(4.5, totalDistance / 30);
+          // Speed: ~30 pixels per second. Minimum duration of 5 seconds for readability
+          const duration = Math.max(5, singleWidth / 30);
           
           parent.classList.add('marquee-parent');
           inner.style.animation = `${animName} ${duration}s linear infinite`;
