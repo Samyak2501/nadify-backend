@@ -510,6 +510,7 @@
     .card-body {
       padding: 12px 14px;
       min-width: 0;
+      overflow: hidden;
     }
 
     .song {
@@ -518,6 +519,37 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+
+    @keyframes marquee {
+      0% {
+        transform: translate3d(0, 0, 0);
+      }
+      10% {
+        transform: translate3d(0, 0, 0);
+      }
+      45% {
+        transform: translate3d(var(--scroll-distance), 0, 0);
+      }
+      55% {
+        transform: translate3d(var(--scroll-distance), 0, 0);
+      }
+      90% {
+        transform: translate3d(0, 0, 0);
+      }
+      100% {
+        transform: translate3d(0, 0, 0);
+      }
+    }
+
+    .song.marquee-active,
+    .np-title.marquee-active,
+    .fs-title.marquee-active {
+      text-overflow: clip !important;
+      overflow: visible !important;
+      display: inline-block !important;
+      text-align: left !important;
+      animation: marquee var(--scroll-duration, 5s) linear infinite;
     }
 
     .artist {
@@ -1149,6 +1181,7 @@
     .np-info {
       min-width: 0;
       flex: 1;
+      overflow: hidden;
     }
 
     .np-title {
@@ -1622,6 +1655,7 @@
       width: 100%;
       max-width: 90%;
       padding: 0 10px;
+      overflow: hidden;
     }
 
     .fs-title {
@@ -2797,6 +2831,45 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
+    function updateMarquees() {
+      const isMobile = window.innerWidth <= 768;
+      const elements = document.querySelectorAll('.song, .np-title, .fs-title');
+      
+      elements.forEach(el => {
+        el.classList.remove('marquee-active');
+        el.style.removeProperty('--scroll-distance');
+        el.style.removeProperty('--scroll-duration');
+
+        if (!isMobile) return;
+
+        // Skip hidden elements to avoid false scrollWidth calculations
+        if (el.getBoundingClientRect().width === 0) return;
+
+        const scrollWidth = el.scrollWidth;
+        const clientWidth = el.clientWidth;
+
+        if (scrollWidth > clientWidth) {
+          const scrollDistance = scrollWidth - clientWidth;
+          const buffer = 16; // Add a tiny safety padding for the right-hand scroll limits
+          const totalDistance = scrollDistance + buffer;
+          
+          el.style.setProperty('--scroll-distance', `-${totalDistance}px`);
+          
+          // Speed: ~30 pixels per second. Minimum duration of 4.5 seconds for readability
+          const duration = Math.max(4.5, totalDistance / 30);
+          el.style.setProperty('--scroll-duration', `${duration}s`);
+          
+          el.classList.add('marquee-active');
+        }
+      });
+    }
+
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(updateMarquees, 150);
+    });
+
     $('brandLogo').onclick = (e) => {
       e.preventDefault();
       goToHome();
@@ -2854,6 +2927,7 @@
       }
 
       isLoadingTopSongs = false;
+      setTimeout(updateMarquees, 50);
     }
 
     function createTopSongCard(song, index) {
@@ -2989,6 +3063,7 @@
       }
 
       recents.forEach((song, i) => container.appendChild(createCard(song, 'recents', i)));
+      setTimeout(updateMarquees, 50);
     }
 
     function applyTheme(mode) {
@@ -3114,6 +3189,7 @@
 
       $('resultsSection').classList.add('show');
       $('homeSections').classList.add('hidden');
+      setTimeout(updateMarquees, 50);
     }
 
     $('resultsClose').onclick = () => {
@@ -3372,6 +3448,7 @@
     function openFullscreen() {
       $('fullscreenPlayer').classList.add('show');
       document.body.classList.add('no-scroll');
+      setTimeout(updateMarquees, 150);
     }
 
     function closeFullscreen() {
@@ -3384,6 +3461,7 @@
       $('fsBg').style.backgroundImage = `url(${currentSongData.image || ''})`;
       $('fsTitle').textContent = currentSongData.title || '—';
       $('fsArtist').textContent = currentSongData.artist || '—';
+      setTimeout(updateMarquees, 50);
     }
 
     $('playerInner').onclick = () => {
