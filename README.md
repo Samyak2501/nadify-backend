@@ -88,3 +88,7 @@ The server can be deployed on any Node.js hosting platform (such as Render, Hero
 ## 📄 License
 
 Distributed under the MIT License. See [LICENSE](LICENSE) for more details.
+
+---
+
+Crafted with ❤️ by Samyak Jain
