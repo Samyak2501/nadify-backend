@@ -71,7 +71,7 @@ app.get('/top-songs', async (req, res) => {
     const songNames = [];
 
     $("table tbody tr").each((i, el) => {
-      if (songNames.length >= 10) return false;
+      if (songNames.length >= 25) return false;
 
       const cols = $(el).find("td");
       if (cols.length < 3) return;
@@ -87,9 +87,9 @@ app.get('/top-songs', async (req, res) => {
       return res.json({ status: false, songs: [], error: 'No songs found on Spotify daily chart' });
     }
 
-    console.log(`[Server] Scraped top 10 songs from Spotify chart. Resolving details from JioSaavn API...`);
+    console.log(`[Server] Scraped top ${songNames.length} songs from Spotify chart. Resolving details from JioSaavn API...`);
 
-    const songPromises = songNames.map(async (name, index) => {
+    const songPromises = songNames.map(async (name) => {
       try {
         const response = await axios.get(`${API_URL}/search/songs`, {
           params: { query: name, page: 0, limit: 1 },
@@ -103,7 +103,6 @@ app.get('/top-songs', async (req, res) => {
           const artist = song.artists?.primary?.map(a => a.name).join(', ') || 'Unknown';
 
           return {
-            rank: index + 1,
             name: song.name || 'Unknown',
             artist: artist,
             image: image,
@@ -120,7 +119,14 @@ app.get('/top-songs', async (req, res) => {
       }
     });
 
-    const songs = (await Promise.all(songPromises)).filter(s => s !== null);
+    const resolved = await Promise.all(songPromises);
+    const resolvedSongs = resolved.filter(s => s !== null);
+
+    // Slice to first 10 successful resolutions and map ranks sequentially from 1 to 10
+    const songs = resolvedSongs.slice(0, 10).map((song, index) => ({
+      ...song,
+      rank: index + 1
+    }));
 
     res.json({ status: true, songs });
   } catch (err) {
