@@ -4,3 +4,5 @@ jiosaavn-api/dist/
 .env
 .DS_Store
 *.log
+.netlify/
+dist_frontend/.netlify/
