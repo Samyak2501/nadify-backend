@@ -91,8 +91,12 @@ app.get('/top-songs', async (req, res) => {
 
     const songPromises = songNames.map(async (name) => {
       try {
+        // Clean query by removing parenthesis (e.g. "(w/ Bharath)") and square brackets and their contents
+        const searchQuery = name.replace(/\s*\([^)]*\)/g, '').replace(/\s*\[[^\]]*\]/g, '').trim();
+        console.log(`[Server] Resolving: "${searchQuery}" (scraped: "${name}")`);
+
         const response = await axios.get(`${API_URL}/search/songs`, {
-          params: { query: name, page: 0, limit: 1 },
+          params: { query: searchQuery, page: 0, limit: 1 },
           timeout: 8000
         });
 
